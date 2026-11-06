@@ -1,11 +1,11 @@
 # agents/base_agent.py
 from abc import ABC, abstractmethod
 
-
-class BaseAgent(ABC):
+# abstract method , aisa function jo child class lazmi implement kare
+class BaseAgent(ABC):  #abstract base class for all agents
     """Every agent must extend this class."""
     
-    NAME: str = "Unnamed Agent"
+    NAME: str = "Unnamed Agent"  #Yeh default values hain. Har child class inko override karega (apni values dega):
     DESCRIPTION: str = ""
     ICON: str = "🤖"
     DOMAIN: str = "general"
