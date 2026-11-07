@@ -1,25 +1,34 @@
-# Secrets 
-.env
-
-# Virtual environment
-.venv/
-venv/
-
-# Python cache
+# Python
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
 
-# Streamlit
-.streamlit/secrets.toml
+# Environment variables
+.env
+.env.local
 
-# SQLite databases (if you add SqliteSaver later)
-*.db
-
-# OS files
-.DS_Store
-Thumbs.db
+# Database files (optional — agar DB push nahi karni)
+# database/*.db
+# database/*.db-wal
+# database/*.db-shm
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+
+# Logs
+*.log
