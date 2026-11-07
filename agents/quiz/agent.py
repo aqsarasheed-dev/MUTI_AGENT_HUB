@@ -51,7 +51,28 @@ Use extract_pdf_text to get content from PDF
 Use retrieve_relevant_content to find relevant sections for topic
 Use generate_quiz_questions tool to get instructions
 Generate questions in JSON format (output the JSON)
-Use save_quiz to store in DB
+ Output the quiz directly in readable text format (DO NOT call any save tool)
+OUTPUT FORMAT (CRITICAL):
+After generating questions, output them directly as text in this format:
+
+QUIZ READY!
+Topic: [topic]
+Difficulty: [difficulty]
+Questions: [number]
+
+QUESTIONS:
+
+Q1. [Question text]
+A) [option]
+B) [option]
+C) [option]
+D) [option]
+Answer: [letter]
+Explanation: [why]
+
+Q2. ...
+
+Do NOT try to output raw JSON. Output readable text format only.
 EVALUATION PROCESS:
 
 Use evaluate_answers tool with questions JSON and student answers

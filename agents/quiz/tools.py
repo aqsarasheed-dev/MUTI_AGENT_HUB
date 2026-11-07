@@ -340,26 +340,21 @@ def get_mastery_history() -> str:
     return "\n".join(results)
 
 
-@tool
-def save_quiz(doc_id: int, topic: str, difficulty: str, questions_json: str) -> str:
-    """Save generated quiz to database.
-    
-    Args:
-        doc_id: Source document ID
-        topic: Quiz topic
-        difficulty: Difficulty level
-        questions_json: JSON string of questions
+# ─── Direct DB Helper (NOT a tool, called by UI) ────────
+def save_quiz_directly(doc_id: int, topic: str, difficulty: str, num_questions: int) -> int:
+    """Save quiz metadata directly to DB (not as a tool, called by UI).
+    This bypasses the LLM to avoid JSON parsing errors with large question strings.
     """
     db = get_db()
     cursor = db.execute(
         "INSERT INTO quizzes (doc_id, topic, difficulty, questions) VALUES (?, ?, ?, ?)",
-        (doc_id, topic, difficulty, questions_json)
+        (doc_id, topic, difficulty, f"Generated {num_questions} questions")
     )
     db.commit()
-    return f"Quiz saved! Quiz ID: {cursor.lastrowid}"
+    return cursor.lastrowid
 
 
-# ─── All Tools List ─────────────────────────────────────
+# ─── All Tools List (save_quiz REMOVED to prevent JSON errors) ───
 ALL_TOOLS = [
     extract_pdf_text,
     retrieve_relevant_content,
@@ -367,5 +362,4 @@ ALL_TOOLS = [
     evaluate_answers,
     update_mastery,
     get_mastery_history,
-    save_quiz,
 ]
