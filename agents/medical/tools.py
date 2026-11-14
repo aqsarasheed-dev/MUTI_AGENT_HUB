@@ -276,21 +276,21 @@ def check_drug_interactions(medicines_list: str) -> str:
         All drug-drug interactions found, with severity and recommended action.
     """
     db = get_db()
-    meds = [m.strip() for m in medicines_list.split(",")]
+    meds = [m.strip() for m in medicines_list.split(",")] # Split the input string by commas and strip any whitespace
     
     all_interactions = []
     
-    # Check all pairs
-    for i, med1 in enumerate(meds):
+    # Check all pairs of medicines for interactions
+    for i, med1 in enumerate(meds): 
         for j, med2 in enumerate(meds):
-            if i >= j:
+            if i >= j: # Skip checking the same pair twice
                 continue
             
             # Find in DB (check both directions)
             row = db.execute(
                 "SELECT * FROM drug_interactions WHERE (drug1 LIKE ? AND drug2 LIKE ?) OR (drug1 LIKE ? AND drug2 LIKE ?)",
                 (f"%{med1}%", f"%{med2}%", f"%{med2}%", f"%{med1}%")
-            ).fetchall()
+            ).fetchall() # Fetch all rows that match the query
             
             for r in row:
                 all_interactions.append({
@@ -305,7 +305,7 @@ def check_drug_interactions(medicines_list: str) -> str:
     
     # Sort by severity
     severity_order = {"SEVERE": 0, "MODERATE": 1, "MILD": 2, "SAFE": 3}
-    all_interactions.sort(key=lambda x: severity_order.get(x["severity"], 4))
+    all_interactions.sort(key=lambda x: severity_order.get(x["severity"], 4)) # Sort interactions by severity using a predefined order (SEVERE first, then MODERATE, MILD, SAFE)
     
     result = f"DRUG INTERACTIONS FOUND: {len(all_interactions)}\n\n"
     
@@ -337,14 +337,14 @@ def check_food_interactions(medicine_name: str) -> str:
     if not rows:
         return f"No known food interactions for '{medicine_name}'."
     
-    # Sort by severity
+    # Sort by severity 
     severity_order = {"SEVERE": 0, "MODERATE": 1, "MILD": 2}
-    rows_list = sorted(rows, key=lambda x: severity_order.get(x["severity"], 3))
+    rows_list = sorted(rows, key=lambda x: severity_order.get(x["severity"], 3)) 
     
     result = f"FOOD INTERACTIONS for {medicine_name}:\n\n"
     
-    for r in rows_list:
-        emoji = "🔴" if r["severity"] == "SEVERE" else "🟡" if r["severity"] == "MODERATE" else "🟢"
+    for r in rows_list: 
+        emoji = "🔴" if r["severity"] == "SEVERE" else "🟡" if r["severity"] == "MODERATE" else "🟢" 
         result += f"{emoji} {r['severity']}: {r['food']}\n"
         result += f"   {r['description']}\n\n"
     

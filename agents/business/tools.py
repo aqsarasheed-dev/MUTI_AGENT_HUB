@@ -2,15 +2,15 @@
 import sqlite3
 import re
 from langchain_core.tools import tool
-from functools import lru_cache
+from functools import lru_cache 
 
 # ─── Database Setup ─────────────────────────────────────
 DB_PATH = "database/ecommerce.db"
 
-@lru_cache(maxsize=1)
-def get_db():
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
+@lru_cache(maxsize=1) 
+def get_db(): #db connection ko cache krta h, jisse ki hr bar new connection na bnaye.
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False) #check_same_thread=False means that the connection can be used by multiple threads.
+    conn.row_factory = sqlite3.Row # This allows accessing columns by name
     return conn
 
 def init_email_db():
@@ -95,7 +95,7 @@ SPAM_TRIGGER_WORDS = [
 # ─── Tools ──────────────────────────────────────────────
 
 @tool
-def get_email_templates(category: str = "") -> str:
+def get_email_templates(category: str = "") -> str: #DB SY email templates ko fetch krta h, agar category empty h to sb templates return krta h.
     """Get sample email templates for inspiration. Optionally filter by category.
     
     Args:
@@ -105,10 +105,10 @@ def get_email_templates(category: str = "") -> str:
     Returns:
         Formatted list of templates with subject and body.
     """
-    db = get_db()
+    db = get_db() 
     
     if category:
-        rows = db.execute(
+        rows = db.execute( 
             "SELECT * FROM email_templates WHERE category = ? ORDER BY avg_score DESC",
             (category,)
         ).fetchall()
@@ -118,9 +118,9 @@ def get_email_templates(category: str = "") -> str:
         ).fetchall()
     
     if not rows:
-        return f"No templates found for category: {category}"
-    
-    results = []
+        return f"No templates found for category: {category}" 
+    #data format k liy loop 
+    results = [] 
     for r in rows:
         results.append(
             f"--- Template ID: {r['id']} | Category: {r['category']} | Score: {r['avg_score']}/10 ---\n"
@@ -142,6 +142,7 @@ def check_spam_score(content: str) -> str:
         Spam risk assessment with list of trigger words found.
     """
     content_lower = content.lower()
+    
     found = []
     
     for word in SPAM_TRIGGER_WORDS:
@@ -170,7 +171,7 @@ def check_grammar(content: str) -> str:
     Returns:
         List of potential grammar/style issues.
     """
-    issues = []
+    issues = [] #mistakes ko store krne k liy list
     
     # Check for double spaces
     if "  " in content:
@@ -225,12 +226,12 @@ def save_email_to_db(brief, email_type, final_draft, scores, revision_count, sta
     db.commit()
 
 
-def get_email_history(limit: int = 5):
+def get_email_history(limit: int = 5): #limit is optional and defaults to 5
     """Get past emails for context."""
     db = get_db()
     return db.execute(
         "SELECT * FROM emails ORDER BY created_at DESC LIMIT ?",
-        (limit,)
+        (limit,) 
     ).fetchall()
 
 

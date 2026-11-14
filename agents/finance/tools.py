@@ -2,12 +2,12 @@
 import sqlite3
 import json
 from langchain_core.tools import tool
-from functools import lru_cache
+from functools import lru_cache #
 
 # ─── Database Setup ─────────────────────────────────────
 DB_PATH = "database/finance.db"
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=1) #database connection ko cache krne k liye (ek hi connection use hoga).
 def get_db():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
@@ -297,7 +297,7 @@ def project_5year(
         total_roi = ((total_cash_flow + (current_value - property_price)) / down_payment) * 100
         
         results.append(
-            f"{year:<6}"
+            f"{year:<6}" 
             f"PKR {current_value/1000000:.1f}M    "
             f"PKR {current_cash_flow/1000:.0f}K      "
             f"PKR {equity/1000000:.1f}M    "

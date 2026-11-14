@@ -75,11 +75,11 @@ def extract_pdf_text(pdf_path: str) -> str:
     try:
         # Try PyMuPDF first (best for text PDFs)
         try:
-            fitz = __import__("fitz")  # PyMuPDF
+            fitz = __import__("fitz")  #  PyMuPDF library ka module hai jo PDF se text nikaalta hai.
             doc = fitz.open(pdf_path)
             text = ""
             for page in doc:
-                text += page.get_text()
+                text += page.get_text() # Extract text from each page
             doc.close()
             
             if len(text.strip()) < 50:
@@ -87,13 +87,13 @@ def extract_pdf_text(pdf_path: str) -> str:
             
             # Save to DB
             db = get_db()
-            cursor = db.execute(
+            cursor = db.execute( # DB me save karna hai extracted text ko
                 "INSERT INTO documents (filename, content, word_count) VALUES (?, ?, ?)",
-                (os.path.basename(pdf_path), text, len(text.split()))
+                (os.path.basename(pdf_path), text, len(text.split())) #path sy sirf filename nikal rha h, content aur word count bhi save kr rha h
             )
             db.commit()
             
-            return f"SUCCESS: Extracted {len(text.split())} words from {os.path.basename(pdf_path)}. Doc ID: {cursor.lastrowid}\n\nPreview (first 500 chars):\n{text[:500]}..."
+            return f"SUCCESS: Extracted {len(text.split())} words from {os.path.basename(pdf_path)}. Doc ID: {cursor.lastrowid}\n\nPreview (first 500 chars):\n{text[:500]}..." 
         
         except ImportError:
             # Fallback to pypdf
@@ -148,19 +148,19 @@ def retrieve_relevant_content(doc_id: int, topic: str, max_chars: int = 5000) ->
     # Simple keyword-based retrieval (in production, use vector embeddings)
     sentences = content.replace('\n', ' ').split('. ')
     
-    relevant = []
+    relevant = [] # will store sentences that contain the topic
     other = []
     
-    for sent in sentences:
+    for sent in sentences: 
         if topic_lower in sent.lower():
             relevant.append(sent)
         else:
             other.append(sent)
     
     # Take relevant sentences first, then fill with other content
-    result_text = '. '.join(relevant[:20]) if relevant else ""
+    result_text = '. '.join(relevant[:20]) if relevant else "" 
     
-    if len(result_text) < max_chars:
+    if len(result_text) < max_chars: #5000 chr sy match nhi huwa relevent text ki lenght 
         remaining = max_chars - len(result_text)
         for sent in other:
             if len(result_text) >= max_chars:
@@ -168,9 +168,9 @@ def retrieve_relevant_content(doc_id: int, topic: str, max_chars: int = 5000) ->
             result_text += '. ' + sent
     
     if not result_text:
-        result_text = content[:max_chars]
+        result_text = content[:max_chars] #5000 chr sy match nhi huwa content ki lenght to pdf k first 5000 chr ko return kr do
     
-    return f"Retrieved content for topic '{topic}' (Doc ID: {doc_id}):\n\n{result_text[:max_chars]}"
+    return f"Retrieved content for topic '{topic}' (Doc ID: {doc_id}):\n\n{result_text[:max_chars]}" #formatting k liye max 5000 chr ko return kr do
 
 
 @tool
@@ -200,7 +200,7 @@ def generate_quiz_questions(
         f"Difficulty: {difficulty}\n"
         f"Number of questions: {num_questions}\n"
         f"Question type: {question_types}\n\n"
-        f"SOURCE CONTENT:\n{content[:3000]}\n\n"
+        f"SOURCE CONTENT:\n{content[:3000]}\n\n" 
         f"Generate {num_questions} {difficulty} {question_types} questions. "
         f"Questions MUST be answerable from the source content above. "
         f"Do NOT make up questions about topics not in the content."
@@ -222,7 +222,7 @@ def evaluate_answers(
         Score, correct count, and per-question evaluation.
     """
     try:
-        questions = json.loads(questions_json)
+        questions = json.loads(questions_json) #loads converts json string to python dictionary
         student_answers = json.loads(student_answers_json)
     except json.JSONDecodeError as e:
         return f"ERROR parsing JSON: {e}"
@@ -234,7 +234,7 @@ def evaluate_answers(
     correct_count = 0
     
     for i, (q, a) in enumerate(zip(questions, student_answers)):
-        is_correct = str(a).strip().lower() == str(q.get("answer", "")).strip().lower()
+        is_correct = str(a).strip().lower() == str(q.get("answer", "")).strip().lower() # Compare student's answer with correct answer (case-insensitive)
         if is_correct:
             correct_count += 1
         
@@ -254,7 +254,7 @@ def evaluate_answers(
         "correct_count": correct_count,
         "total_questions": len(questions),
         "results": results
-    }, indent=2)
+    }, indent=2) 
 
 
 @tool
@@ -276,15 +276,15 @@ def update_mastery(topic: str, score: float) -> str:
     if row:
         # Update with weighted average (70% old, 30% new)
         old_score = row["mastery_score"]
-        new_score = (old_score * 0.7) + (score * 0.3)
-        new_count = row["attempts_count"] + 1
+        new_score = (old_score * 0.7) + (score * 0.3) 
+        new_count = row["attempts_count"] + 1 
         
         db.execute(
             "UPDATE mastery SET mastery_score = ?, attempts_count = ?, last_attempted = CURRENT_TIMESTAMP WHERE topic = ?",
             (new_score, new_count, topic)
         )
     else:
-        new_score = score
+        new_score = score 
         new_count = 1
         db.execute(
             "INSERT INTO mastery (topic, mastery_score, attempts_count, last_attempted) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
@@ -334,7 +334,7 @@ def get_mastery_history() -> str:
         bar = "█" * int(r["mastery_score"] / 10) + "░" * (10 - int(r["mastery_score"] / 10))
         
         results.append(
-            f"{r['topic']:<25} {bar} {r['mastery_score']:.1f}% ({level}) - {r['attempts_count']} attempts"
+            f"{r['topic']:<25} {bar} {r['mastery_score']:.1f}% ({level}) - {r['attempts_count']} attempts" # Format the output for each topic
         )
     
     return "\n".join(results)
@@ -354,7 +354,7 @@ def save_quiz_directly(doc_id: int, topic: str, difficulty: str, num_questions: 
     return cursor.lastrowid
 
 
-# ─── All Tools List (save_quiz REMOVED to prevent JSON errors) ───
+# ─── All Tools List ───
 ALL_TOOLS = [
     extract_pdf_text,
     retrieve_relevant_content,

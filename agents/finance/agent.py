@@ -79,8 +79,8 @@ class FinanceAgent(BaseAgent):
             appr_match = re.search(r'Appreciation:\s*([\d.]+)%', market_data)
             appreciation_rate = float(appr_match.group(1)) if appr_match else 8.0
             
-            # 2. Mortgage
-            mortgage = calculate_mortgage.invoke({
+            # 2. Mortgage emi calculation
+            mortgage = calculate_mortgage.invoke({ 
                 "property_price": property_price,
                 "down_payment": down_payment,
                 "interest_rate": interest_rate,
@@ -94,9 +94,9 @@ class FinanceAgent(BaseAgent):
             # 3. Cash flow
             cash_flow = calculate_cash_flow.invoke({
                 "monthly_rent": expected_rent,
-                "monthly_emi": monthly_emi,
+                "monthly_emi": monthly_emi, #motrtage tool ka output h 
                 "property_price": property_price,
-                "vacancy_rate": vacancy_rate,
+                "vacancy_rate": vacancy_rate, #market rates tool ka output h
                 "expenses_rate": 0.15
             })
             
@@ -111,7 +111,7 @@ class FinanceAgent(BaseAgent):
             roi = calculate_roi.invoke({
                 "property_price": property_price,
                 "down_payment": down_payment,
-                "annual_cash_flow": annual_cash_flow,
+                "annual_cash_flow": annual_cash_flow, #cash flow tool ka output h
                 "annual_rent": annual_rent,
                 "appreciation_rate": appreciation_rate
             })
@@ -125,8 +125,8 @@ class FinanceAgent(BaseAgent):
             # 5. 5-year projection
             projection = project_5year.invoke({
                 "property_price": property_price,
-                "down_payment": down_payment,
-                "annual_cash_flow": annual_cash_flow,
+                "down_payment": down_payment, 
+                "annual_cash_flow": annual_cash_flow, #cash flow tool ka output h
                 "appreciation_rate": appreciation_rate,
                 "rent_growth": 5.0
             })
@@ -140,7 +140,7 @@ class FinanceAgent(BaseAgent):
                 "property_price": property_price,
                 "monthly_cash_flow": monthly_cash_flow,
                 "vacancy_rate": vacancy_rate,
-                "interest_rate": interest_rate
+                "interest_rate": interest_rate 
             })
             
             # Extract risk score
@@ -149,11 +149,11 @@ class FinanceAgent(BaseAgent):
             
             # 7. Scenario analysis
             scenarios = scenario_analysis.invoke({
-                "property_price": property_price,
+                "property_price": property_price, #property price tool ka output h
                 "down_payment": down_payment,
                 "monthly_rent": expected_rent,
                 "monthly_emi": monthly_emi,
-                "base_cash_flow": monthly_cash_flow
+                "base_cash_flow": monthly_cash_flow 
             })
 
             # Use the same recommendation criteria as the final report.

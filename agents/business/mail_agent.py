@@ -1,5 +1,4 @@
-# agents/business/agent.py
-import re
+import re  #regular expression library for parsing scores
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import InMemorySaver
 from common.llm import get_llm
@@ -79,7 +78,7 @@ class EcommerceAgent(BaseAgent):
         self.llm = get_llm(temperature=0.5)
         self.reviewer_llm = get_llm(temperature=0.1)
         
-        # Removed 'prompt' parameter - system message goes into messages
+        
         self.writer_agent = create_agent(
             model=self.llm,
             tools=WRITER_TOOLS,
@@ -100,7 +99,7 @@ class EcommerceAgent(BaseAgent):
         history = []
         
         # Step 1: Writer creates initial draft
-        writer_config = {"configurable": {"thread_id": f"writer-{thread_id}"}}
+        writer_config = {"configurable": {"thread_id": f"writer-{thread_id}"}} 
         writer_result = self.writer_agent.invoke(
             {"messages": [
                 {"role": "system", "content": WRITER_PROMPT},
@@ -116,11 +115,11 @@ class EcommerceAgent(BaseAgent):
         
         # Step 2: Review + Revise loop
         for revision_num in range(1, max_revisions + 1):
-            reviewer_config = {"configurable": {"thread_id": f"reviewer-{thread_id}-v{revision_num}"}}
+            reviewer_config = {"configurable": {"thread_id": f"reviewer-{thread_id}-v{revision_num}"}} #draft ko review krne k liye thread id
             reviewer_result = self.reviewer_agent.invoke(
                 {"messages": [
                     {"role": "system", "content": REVIEWER_PROMPT},
-                    {"role": "user", "content": f"Review this email:\n\n{draft}\n\nEmail type: {email_type}"}
+                    {"role": "user", "content": f"Review this email:\n\n{draft}\n\nEmail type: {email_type}"} #draft ko review krne k liye reviewer agent ko bhej rha h
                 ]},
                 reviewer_config
             )
@@ -138,7 +137,7 @@ class EcommerceAgent(BaseAgent):
                     "revisions": revision_num - 1, "history": history,
                     "status": "approved"
                 }
-            
+            # If not scores not 7+, prepare for next revision
             revision_input = (
                 f"Revise this email based on reviewer feedback.\n\n"
                 f"ORIGINAL BRIEF: {full_brief}\n\n"
@@ -161,7 +160,7 @@ class EcommerceAgent(BaseAgent):
                 "version": revision_num + 1, "draft": draft, 
                 "scores": None, "feedback": None
             })
-        
+        # If max revisions reached without approval, save in db and return
         final_scores = scores if 'scores' in locals() else {"tone": 5, "persuasion": 5, "cta": 5, "grammar": 5}
         save_email_to_db(user_input, email_type, draft, final_scores, 
                         max_revisions, "max_revisions_reached")
@@ -171,14 +170,14 @@ class EcommerceAgent(BaseAgent):
             "revisions": max_revisions, "history": history,
             "status": "max_revisions_reached"
         }
-    
+    #helper methods data ko clean and readable format me convert krne k liye
     def _extract_content(self, result: dict) -> str:
         final_msg = result["messages"][-1]
         if isinstance(final_msg.content, list):
             return final_msg.content[0].get("text", "")
         return final_msg.content
     
-    def _parse_scores(self, review_text: str) -> dict:
+    def _parse_scores(self, review_text: str) -> dict: #return clean dict help of regex
         scores = {"tone": 5, "persuasion": 5, "cta": 5, "grammar": 5}
         patterns = {
             "tone": r"tone.*?(\d+)\s*/\s*10",
@@ -189,7 +188,7 @@ class EcommerceAgent(BaseAgent):
         for key, pattern in patterns.items():
             match = re.search(pattern, review_text, re.IGNORECASE)
             if match:
-                scores[key] = int(match.group(1))
+                scores[key] = int(match.group(1)) 
         return scores
     
     def render_ui(self):

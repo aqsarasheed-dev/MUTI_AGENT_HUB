@@ -1,19 +1,18 @@
-# agents/__init__.py
-import importlib
+import importlib  #runtime p python file ko import karna ke liye
 import pkgutil
 import os
-from typing import Dict
-from .base_agent import BaseAgent
-
-def discover_agents() -> Dict[str, BaseAgent]:
+from typing import Dict #Python type hinting ke liye (batane ke liye ke function Dictionary return karega).
+from .base_agent import BaseAgent 
+ 
+def discover_agents() -> Dict[str, BaseAgent]: #keys strings hongi aur values BaseAgent objects honge).
     """Auto-discover all agents in subfolders."""
-    agents = {}
+    agents = {} #agent registry dictionary 
     
-    for _, name, is_pkg in pkgutil.iter_modules(__path__):
+    for _, name, is_pkg in pkgutil.iter_modules(__path__): #agent folder k ander hr chiz ko scan krta h 
         if not is_pkg:
             continue  # Skip files like base_agent.py
         
-        # Try 'agent.py' first, then '{name}_agent.py', then any '*_agent.py'
+        # list diff nam try kr ri h
         module_paths_to_try = [
             f".{name}.agent",
             f".{name}.{name}_agent",
@@ -22,7 +21,7 @@ def discover_agents() -> Dict[str, BaseAgent]:
         ]
         
         module = None
-        for path in module_paths_to_try:
+        for path in module_paths_to_try: #list p loop 
             try:
                 module = importlib.import_module(path, package=__name__)
                 break
@@ -34,13 +33,13 @@ def discover_agents() -> Dict[str, BaseAgent]:
             continue
         
         # Find class that extends BaseAgent
-        for attr_name in dir(module):
+        for attr_name in dir(module): 
             attr = getattr(module, attr_name)
             if (isinstance(attr, type) 
                 and issubclass(attr, BaseAgent) 
                 and attr != BaseAgent):
                 try:
-                    instance = attr()
+                    instance = attr() #class ka object bana rha h
                     agents[attr.NAME] = instance
                     print(f"Loaded agent: {attr.NAME}")
                 except Exception as e:

@@ -10,7 +10,7 @@ DB_PATH = "database/food.db"
 @lru_cache(maxsize=1)
 def get_db():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
+    conn.row_factory = sqlite3.Row #  rows as dictionaries
     return conn
 
 def init_food_db():
@@ -55,7 +55,7 @@ def init_food_db():
     # ─── Seed Recipes ───
     recipe_count = db.execute("SELECT COUNT(*) FROM recipes").fetchone()[0]
     if recipe_count == 0:
-        recipes = [
+        recipes = [ #10 sample recipes with nutrition info
             ("Chicken Biryani", "main",
              json.dumps([{"item": "Chicken", "qty": "300g"}, {"item": "Basmati Rice", "qty": "2 cups"}, {"item": "Yogurt", "qty": "1 cup"}, {"item": "Onions", "qty": "2"}, {"item": "Ghee", "qty": "3 tbsp"}, {"item": "Biryani Masala", "qty": "2 tbsp"}]),
              "Marinate chicken in yogurt + spices. Cook rice separately. Layer chicken and rice. Steam for 20 min.",
@@ -115,8 +115,8 @@ def init_food_db():
     
     # ─── Seed Substitutions ───
     sub_count = db.execute("SELECT COUNT(*) FROM substitutions").fetchone()[0]
-    if sub_count == 0:
-        substitutions = [
+    if sub_count == 0: 
+        substitutions = [     #35+ rules (kis diet mein kya replace hoga).
             # Vegan substitutions
             ("Chicken", "vegan", "Chickpeas or Tofu", "Protein match (chickpea: 19g/cup), texture similar when marinated", -8, -50),
             ("Beef Patty", "vegan", "Black Bean Patty", "Protein (15g), iron-rich, similar texture when grilled", -10, -80),
@@ -164,7 +164,7 @@ def init_food_db():
             ("Bacon", "vegetarian", "Mushroom Bacon", "Smoky, crispy, umami flavor", -10, -80),
         ]
         
-        db.executemany(
+        db.executemany( 
             "INSERT INTO substitutions (original, target_diet, substitute, reason, protein_change, calories_change) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             substitutions
@@ -194,11 +194,11 @@ def get_recipe_info(recipe_name: str) -> str:
     if not row:
         return f"Recipe '{recipe_name}' not found. Try: Chicken Biryani, Beef Burger, Caesar Salad, Pasta Carbonara, Paneer Tikka, Greek Yogurt Bowl, Avocado Toast, Chicken Caesar Wrap, Mango Lassi, Vegetable Omelette"
     
-    ingredients = json.loads(row["ingredients"])
-    ing_list = "\n".join([f"  - {i['item']}: {i['qty']}" for i in ingredients])
+    ingredients = json.loads(row["ingredients"]) # Convert JSON string to list of dictionaries
+    ing_list = "\n".join([f"  - {i['item']}: {i['qty']}" for i in ingredients]) # Create a list of ingredient strings
     
     return (
-        f"Recipe: {row['name']} (Category: {row['category']})\n\n"
+        f"Recipe: {row['name']} (Category: {row['category']})\n\n" 
         f"Ingredients:\n{ing_list}\n\n"
         f"Instructions: {row['instructions']}\n\n"
         f"Nutrition (per serving):\n"
@@ -211,7 +211,7 @@ def get_recipe_info(recipe_name: str) -> str:
 
 
 @tool
-def get_substitution(ingredient: str, target_diet: str) -> str:
+def get_substitution(ingredient: str, target_diet: str) -> str: #target diet is a string like "vegan", "vegetarian", "keto", "gluten-free", "low-carb", "diabetic"
     """Find a substitution for an ingredient to match target diet.
     
     Args:
@@ -234,8 +234,8 @@ def get_substitution(ingredient: str, target_diet: str) -> str:
         f"Substitution for {row['original']} → {row['target_diet']}:\n"
         f"  Substitute: {row['substitute']}\n"
         f"  Reason: {row['reason']}\n"
-        f"  Protein change: {row['protein_change']:+.0f}g\n"
-        f"  Calories change: {row['calories_change']:+.0f}"
+        f"  Protein change: {row['protein_change']:+.0f}g\n" #:+.0f means show sign and no decimal places
+        f"  Calories change: {row['calories_change']:+.0f}" 
     )
 
 
@@ -269,7 +269,7 @@ def calculate_nutrition(ingredients_list: str, target_diet: str = "") -> str:
         "cauliflower": {"cal": 25, "p": 1.9, "c": 5, "f": 0.3, "unit": "100g"},
     }
     
-    ingredients = [i.strip().lower() for i in ingredients_list.split(",")]
+    ingredients = [i.strip().lower() for i in ingredients_list.split(",")] 
     
     total_cal = 0
     total_p = 0
@@ -279,7 +279,7 @@ def calculate_nutrition(ingredients_list: str, target_diet: str = "") -> str:
     found = []
     missing = []
     
-    for ing in ingredients:
+    for ing in ingredients: #ingredients list me jo ingredients hai unhe nutrition_db me search kr rhe hain
         matched = False
         for key, vals in nutrition_db.items():
             if key in ing:
@@ -361,7 +361,7 @@ def get_transformation_history(limit: int = 5) -> str:
     rows = db.execute(
         "SELECT * FROM transformations ORDER BY created_at DESC LIMIT ?",
         (limit,)
-    ).fetchall()
+    ).fetchall() #Query se aayi saari rows ko ek list (array) ki form mein nikaal kar deta 
     
     if not rows:
         return "No past transformations yet."
